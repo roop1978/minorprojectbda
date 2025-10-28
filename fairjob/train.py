@@ -5,11 +5,14 @@ import torch.optim as optim
 from torch.utils.data import DataLoader, TensorDataset
 import pandas as pd
 import numpy as np
+from torchgen import model
 from tqdm import tqdm
 # Use PyTorch Geometric instead of DGl
 from torch_geometric.data import Data
 import torch_geometric
 import warnings
+
+import torch.nn as nn
 
 warnings.filterwarnings('ignore')
 
@@ -316,6 +319,9 @@ class JobRecommendationTrainer:
                     'config': self.config,
                     'history': self.history
                 }, 'model.pt')
+                torch.save(self.model.state_dict(), "model_small.pt")
+
+
                 print("Best model saved!")
             else:
                 patience_counter += 1

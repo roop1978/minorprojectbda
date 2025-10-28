@@ -35,15 +35,18 @@ class FairnessAwareDashboard:
             try:
                 # allowlist the custom class
                 torch.serialization.add_safe_globals([utils.DataPreprocessor])
+
                 checkpoint = torch.load('model.pt', map_location='cpu')
                 self.config = checkpoint['config']
                 self.preprocessor = checkpoint['preprocessor']
                 
                 # Initialize model
                 self.model = FairnessAwareJobRecommender(self.config)
-                self.model.load_state_dict(checkpoint['model_state_dict'])
-                self.model.eval()
-                
+
+                # Load raw weights directly (not checkpoint dict)
+                state_dict = torch.load("model_small.pt", map_location=torch.device("cpu"))
+                self.model.load_state_dict(state_dict)
+
                 st.success("✅ Model loaded successfully!")
                 return True
             except Exception as e:
