@@ -4,6 +4,7 @@ import numpy as np
 import torch
 import plotly.graph_objects as go
 import plotly.express as px
+import utils
 from plotly.subplots import make_subplots
 import os
 import warnings
@@ -32,6 +33,8 @@ class FairnessAwareDashboard:
         """Load the trained model"""
         if os.path.exists('model.pt'):
             try:
+                # allowlist the custom class
+                torch.serialization.add_safe_globals([utils.DataPreprocessor])
                 checkpoint = torch.load('model.pt', map_location='cpu')
                 self.config = checkpoint['config']
                 self.preprocessor = checkpoint['preprocessor']
