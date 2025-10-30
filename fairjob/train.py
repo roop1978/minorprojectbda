@@ -11,7 +11,6 @@ from tqdm import tqdm
 from torch_geometric.data import Data
 import torch_geometric
 import warnings
-
 import torch.nn as nn
 
 warnings.filterwarnings('ignore')

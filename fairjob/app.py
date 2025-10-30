@@ -152,7 +152,7 @@ class FairnessAwareDashboard:
                ```
             
             3. **Check training progress:**
-               - Model will be saved as `model.pt`
+               - Model will be saved as `model_small.pt`
                - Training history saved as `training_history.csv`
                - Fairness metrics plot saved as `fairness_metrics.png`
             """)

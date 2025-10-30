@@ -6,7 +6,7 @@ Test script to verify the trained model can make predictions
 import torch
 import pandas as pd
 import numpy as np
-from models_simple import SimpleFairnessAwareJobRecommender as FairnessAwareJobRecommender, get_model_config
+from models import FairnessAwareJobRecommender, get_model_config
 from utils import create_batch_data
 import utils  # required for custom preprocessing and fairness classes
 
@@ -41,7 +41,8 @@ def test_model():
         print(f"[SUCCESS] Test data loaded: {df.shape}")
 
         # Take a small sample for testing
-        test_sample = df.head(5)
+        test_sample = df
+
         print(f"Testing on {len(test_sample)} samples...")
 
         # Preprocess test data
