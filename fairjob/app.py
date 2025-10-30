@@ -28,34 +28,46 @@ class FairnessAwareDashboard:
         
         # Load model if available
         self.load_model()
-    
+
     def load_model(self):
         """Load the trained model"""
-        if os.path.exists('model.pt'):
+        model_path = "model_small.pt"  # use correct file name
+
+        if os.path.exists(model_path):
             try:
-                # allowlist the custom class
-                torch.serialization.add_safe_globals([utils.DataPreprocessor])
+                import torch
+                import utils
+                torch.serialization.add_safe_globals([
+                    utils.DataPreprocessor,
+                    utils.FairnessMetrics
+                ])
 
-                checkpoint = torch.load('model.pt', map_location='cpu')
-                self.config = checkpoint['config']
-                self.preprocessor = checkpoint['preprocessor']
-                
-                # Initialize model
+                # ✅ Now safely load your checkpoint
+                checkpoint = torch.load("model_small.pt", map_location=torch.device("cpu"), weights_only=False)
+
+                # load config & preprocessor
+                self.config = checkpoint.get("config", get_model_config())
+                self.preprocessor = checkpoint.get("preprocessor", None)
+
+                # initialize model and load weights
                 self.model = FairnessAwareJobRecommender(self.config)
+                if "model_state_dict" in checkpoint:
+                    self.model.load_state_dict(checkpoint["model_state_dict"])
+                else:
+                    self.model.load_state_dict(checkpoint)
 
-                # Load raw weights directly (not checkpoint dict)
-                state_dict = torch.load("model_small.pt", map_location=torch.device("cpu"))
-                self.model.load_state_dict(state_dict)
-
+                self.model.eval()
                 st.success("✅ Model loaded successfully!")
                 return True
+
             except Exception as e:
                 st.error(f"❌ Error loading model: {str(e)}")
                 return False
+
         else:
-            st.warning("⚠️ No trained model found. Please train the model first using: `python train.py --train`")
+            st.warning("⚠️ No trained model found. Please train first using: `python train.py --train`")
             return False
-    
+
     def run(self):
         """Run the Streamlit dashboard"""
         st.set_page_config(
