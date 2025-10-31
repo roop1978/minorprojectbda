@@ -5,6 +5,8 @@ import torch.optim as optim
 from torch.utils.data import DataLoader, TensorDataset
 import pandas as pd
 import numpy as np
+from utils import FairnessMetrics
+
 from torchgen import model
 from tqdm import tqdm
 # Use PyTorch Geometric instead of DGl
@@ -188,13 +190,29 @@ class JobRecommendationTrainer:
             sensitive_batch = sensitive_batch.to(self.device)
 
             # Forward pass
+            # Forward pass
             outputs = self.model(batch_data, self.graph)
 
-            # Compute loss
+            # Compute main loss components
             loss_dict = self.criterion(outputs, y_batch, sensitive_batch)
 
+            # === Fairness Regularization: Exposure Gap Penalty ===
+            click_prob = outputs['click_prob'].detach().cpu()
+            sensitive_cpu = sensitive_batch.detach().cpu()
+            exposure_gap, _, _ = self.fairness_metrics.exposure_gap(click_prob, sensitive_cpu)
+
+            # Convert exposure gap to tensor safely
+            fairness_penalty = torch.tensor(
+                0.1 * float(abs(exposure_gap) if not np.isnan(exposure_gap) else 0.0),
+                dtype=torch.float32,
+                device=self.device
+            )
+
+            # Combine total loss
+            loss = loss_dict['total_loss'] + fairness_penalty
+
             # Backward pass
-            loss_dict['total_loss'].backward()
+            loss.backward()
 
             # Gradient clipping
             torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=1.0)
